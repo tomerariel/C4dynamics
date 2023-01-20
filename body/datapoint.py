@@ -39,12 +39,12 @@ class datapoint:
   
 
 
-  def __init__(obj, **kwargs):
-    obj.__dict__.update(kwargs)
-    
-    obj.x0 = obj.x
-    obj.y0 = obj.y
-    obj.z0 = obj.z
+  def __init__(self, **kwargs):
+    self.__dict__.update(kwargs)
+
+    self.x0 = self.x
+    self.y0 = self.y
+    self.z0 = self.z
     
     # fol = os.getcwd() + '/fig'
     # if not os.path.exists(fol):
@@ -56,52 +56,63 @@ class datapoint:
   
   # x = property(x, set_x)
   
-  def store(obj, t = -1):
-    obj._data = np.vstack((obj._data
-                           , np.array([t, obj.x, obj.y,  obj.z
-                                       , obj.vx, obj.vy, obj.vz 
-                                       , obj.ax, obj.ay, obj.az]))).copy()
+  def store(self, t = -1):
+    self._data = np.vstack((
+        self._data,
+        np.array([
+            t,
+            self.x,
+            self.y,
+            self.z,
+            self.vx,
+            self.vy,
+            self.vz,
+            self.ax,
+            self.ay,
+            self.az,
+        ]),
+    )).copy()
 
   def set_t(): print('setting or deleting stored data is impossible')
   
-  def get_t(obj):
-    return obj._data[1:, 0]
+  def get_t(self):
+    return self._data[1:, 0]
   data_t = property(get_t, set_t, set_t)
 
-  def get_x(obj):
-    return obj._data[1:, 1]
+  def get_x(self):
+    return self._data[1:, 1]
   data_x = property(get_x, set_t, set_t)
   
-  def get_y(obj):
-    return obj._data[1:, 2]
+  def get_y(self):
+    return self._data[1:, 2]
   data_y = property(get_y, set_t, set_t)
   
-  def get_z(obj):
-    return obj._data[1:, 3]
+  def get_z(self):
+    return self._data[1:, 3]
   data_z = property(get_z, set_t, set_t)
   
-  def get_vx(obj):
-    return obj._data[1:, 4]
+  def get_vx(self):
+    return self._data[1:, 4]
   data_vx = property(get_vx, set_t, set_t)
   
-  def get_vy(obj):
-    return obj._data[1:, 5]
+  def get_vy(self):
+    return self._data[1:, 5]
   data_vy = property(get_vy, set_t, set_t)
   
-  def get_vz(obj):
-    return obj._data[1:, 6]
+  def get_vz(self):
+    return self._data[1:, 6]
   data_vz = property(get_vz, set_t, set_t)
   
-  def get_ax(obj):
-    return obj._data[1:, 7]
+  def get_ax(self):
+    return self._data[1:, 7]
   data_ax = property(get_ax, set_t, set_t)
   
-  def get_ay(obj):
-    return obj._data[1:, 8]
+  def get_ay(self):
+    return self._data[1:, 8]
   data_ay = property(get_ay, set_t, set_t)
   
-  def get_az(obj):
-    return obj._data[1:, 9]
+  def get_az(self):
+    return self._data[1:, 9]
   data_az = property(get_az, set_t, set_t)
   
   
@@ -109,7 +120,7 @@ class datapoint:
   # 
   # plot functions
   ##
-  def draw(obj, var):
+  def draw(self, var):
     from matplotlib import pyplot as plt
     plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
     # plt.rcParams['image.interpolation'] = 'nearest'
@@ -117,10 +128,10 @@ class datapoint:
     plt.rcParams["font.family"] = "Times New Roman"
     plt.rcParams["font.size"] = 18
 
-    t = obj._data[1:, 0]
-    v = obj._data[1:, obj._didx[var]]
-    
-    
+    t = self._data[1:, 0]
+    v = self._data[1:, self._didx[var]]
+      
+
     plt.figure()
     plt.plot(t, v, 'k', linewidth = 2)
     plt.title(var)

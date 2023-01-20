@@ -27,17 +27,17 @@ class rigidbody(c4d.datapoint):  #
   
 
 
-  def __init__(obj, **kwargs):
-    obj.__dict__.update(kwargs)
+  def __init__(self, **kwargs):
+    self.__dict__.update(kwargs)
 
-    obj.phi0   = obj.phi
-    obj.theta0 = obj.theta
-    obj.psi0   = obj.psi
+    self.phi0 = self.phi
+    self.theta0 = self.theta
+    self.psi0 = self.psi
    
    
-  def inertial_from_body_dcm(obj): # bound method 
+  def inertial_from_body_dcm(self): # bound method 
     # Bound methods have been "bound" to an instance, and that instance will be passed as the first argument whenever the method is called.
-    return pri.dcm321(obj.phi, obj.theta, obj.psi)
+    return pri.dcm321(self.phi, self.theta, self.psi)
 
  
  

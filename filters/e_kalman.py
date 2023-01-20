@@ -17,31 +17,31 @@ class e_kalman:
   
   tau = 0
 
-  def __init__(obj, x0, p0noise, tau): # vp, 
+  def __init__(self, x0, p0noise, tau):  # vp, 
     '''    '''
     
-    obj.x = np.reshape(x0, ((3, 1)))
-    
+    self.x = np.reshape(x0, ((3, 1)))
+
     n = len(x0)
-    
+
     # obj.Phi = np.zeros(n)
-    obj.P = np.zeros((n, n))         # the initial covariance matrix
+    self.P = np.zeros((n, n))
     for i in range(n):
       # the variance of the error in the initial estimate of position and is taken to be the variance of the measurement noise.
       # the variance of the error in the initial estimate of velocity
       # the variance of the error in the initial estimate of ballistic coefficient
       # others: assumed that there is no process noise.
-      obj.P[i, i] = p0noise[i]**2         
+      self.P[i, i] = p0noise[i]**2
     # obj.Q = np.zeros(n)         
-    
-    obj.H = np.zeros((n))
-    obj.H[0] = 1
-    obj.R = p0noise[0]**2 
-    obj.tau = tau 
+
+    self.H = np.zeros((n))
+    self.H[0] = 1
+    self.R = p0noise[0]**2
+    self.tau = tau 
     
       
       
-  def predict(obj, f, Phi, Q):
+  def predict(self, f, Phi, Q):
     '''
     predict the mean X and the covariance P of the system state at time k.
     x input mean state estimate of the previous step (k - 1)
@@ -51,13 +51,13 @@ class e_kalman:
     b input matrix 
     u control input 
     '''
-    obj.x = obj.x + f(obj.x) * obj.tau
-    obj.P = np.linalg.multi_dot([Phi, obj.P, Phi.T]) + Q   
-    
-    return obj.x
+    self.x = self.x + f(self.x) * self.tau
+    self.P = np.linalg.multi_dot([Phi, self.P, Phi.T]) + Q   
+
+    return self.x
  
  
-  def update(obj, f, y_in): 
+  def update(self, f, y_in):
     '''
     computes the posterior mean x and covariance P of the state given new measurement y.
     corrects x and P given the predicted x and P matrices, measurement vector y, the measurement 
@@ -65,13 +65,13 @@ class e_kalman:
     K kalman gains
     '''
     
-    S = obj.R + np.linalg.multi_dot([obj.H, obj.P, obj.H.T])
-    
+    S = self.R + np.linalg.multi_dot([self.H, self.P, self.H.T])
+
     invs = 1 / S if S.ndim < 2 else np.linalg.inv(S)
-    K = np.reshape(np.dot(obj.P @ obj.H.T, invs), (len(obj.P), -1))
-    
-    obj.x = obj.x + np.dot(K, (y_in - np.dot(obj.H, obj.x))).reshape((len(K), 1))
-    obj.P = (np.eye(len(obj.P)) - K * obj.H) @ obj.P
-    
-    return obj.x
+    K = np.reshape(np.dot(self.P @ self.H.T, invs), (len(self.P), -1))
+
+    self.x = self.x + np.dot(K, y_in - np.dot(self.H, self.x)).reshape((len(K), 1))
+    self.P = (np.eye(len(self.P)) - K * self.H) @ self.P
+
+    return self.x
 

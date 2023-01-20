@@ -12,49 +12,51 @@ from matplotlib.patches import Circle
 
 class double_pendulum: 
 
-  def __init__(obj):
+  def __init__(self):
     # Pendulum rod lengths (m), bob masses (kg).
-    obj.L1, obj.L2 = 1, 1
-    obj.m1, obj.m2 = 1, 1
+    self.L1, self.L2 = 1, 1
+    self.m1, self.m2 = 1, 1
 
     # Maximum time, time point spacings and the time grid (all in s).
-    obj.tmax, obj.dt = 30, 0.01
+    self.tmax, self.dt = 30, 0.01
     # t = np.arange(0, tmax+dt, dt)
     # Initial conditions: theta1, dtheta1/dt, theta2, dtheta2/dt.
-    obj.y0 = np.array([3 * np.pi / 7, 0, 3 * np.pi / 4, 0])
+    self.y0 = np.array([3 * np.pi / 7, 0, 3 * np.pi / 4, 0])
 
-    obj.EDRIFT = 0.05
+    self.EDRIFT = 0.05
 
     # Plotted bob circle radius
-    obj.r = 0.05
+    self.r = 0.05
 
-  def calc_E(obj, y):
-      """Return the total energy of the system."""
+  def calc_E(self, y):
+    """Return the total energy of the system."""
 
-      th1, th1d, th2, th2d = y.T
-      g = 9.81 
+    th1, th1d, th2, th2d = y.T
+    g = 9.81 
 
-      V = -(obj.m1 + obj.m2) * obj.L1 * g * np.cos(th1) - obj.m2 * obj.L2 * g * np.cos(th2)
-      T = 0.5 * obj.m1 * (obj.L1 * th1d)**2 + 0.5 * obj.m2 * ((obj.L1 * th1d)**2 + (obj.L2 * th2d)**2 
-              + 2 * obj.L1 * obj.L2 * th1d * th2d * np.cos(th1 - th2))
-      return T + V
+    V = -(self.m1 + self.m2) * self.L1 * g * np.cos(
+        th1) - self.m2 * self.L2 * g * np.cos(th2)
+    T = 0.5 * self.m1 * (self.L1 * th1d)**2 + (0.5 * self.m2 * (
+        (self.L1 * th1d)**2 + (self.L2 * th2d)**2 +
+        2 * self.L1 * self.L2 * th1d * th2d * np.cos(th1 - th2)))
+    return T + V
 
-  def make_plot(obj, y, savedir): # , i
+  def make_plot(self, y, savedir): # , i
 
     theta1, theta2 = y[:,0], y[:,2]
     # Convert to Cartesian coordinates of the two bob positions.
-    x1 = obj.L1 * np.sin(theta1)
-    y1 = -obj.L1 * np.cos(theta1)
-    x2 = x1 + obj.L2 * np.sin(theta2)
-    y2 = y1 - obj.L2 * np.cos(theta2)
+    x1 = self.L1 * np.sin(theta1)
+    y1 = -self.L1 * np.cos(theta1)
+    x2 = x1 + self.L2 * np.sin(theta2)
+    y2 = y1 - self.L2 * np.cos(theta2)
 
-    t = np.arange(0, obj.tmax + obj.dt, obj.dt)
+    t = np.arange(0, self.tmax + self.dt, self.dt)
 
     # Make an image every di time points, corresponding to a frame rate of fps
     # frames per second.
     # Frame rate, s-1
     fps = 10
-    di = int(1 / fps / obj.dt)
+    di = int(1 / fps / self.dt)
     fig = plt.figure(figsize = (8.3333, 6.25), dpi=72)
     plt.ioff()
     ax = fig.add_subplot(111)
@@ -62,11 +64,11 @@ class double_pendulum:
     # Plot a trail of the m2 bob's position for the last trail_secs seconds.
     trail_secs = 1
     # This corresponds to max_trail time points.
-    max_trail = int(trail_secs / obj.dt)
+    max_trail = int(trail_secs / self.dt)
 
     for i in range(0, t.size, di):
       # print(i // di, '/', t.size // di)
-      
+
       # Plot and save an image of the double pendulum configuration for time
       # point i.s
       # The pendulum rods.
@@ -74,9 +76,9 @@ class double_pendulum:
               , c = 'k')
       ax.set_facecolor('indianred')
       # Circles representing the anchor point of rod 1, and bobs 1 and 2.
-      c0 = Circle((0, 0), obj.r / 2, fc = 'k', zorder = 10)
-      c1 = Circle((x1[i], y1[i]), obj.r, fc = 'b', ec = 'b', zorder = 10)
-      c2 = Circle((x2[i], y2[i]), obj.r, fc = 'r', ec = 'r', zorder = 10)
+      c0 = Circle((0, 0), self.r / 2, fc = 'k', zorder = 10)
+      c1 = Circle((x1[i], y1[i]), self.r, fc = 'b', ec = 'b', zorder = 10)
+      c2 = Circle((x2[i], y2[i]), self.r, fc = 'r', ec = 'r', zorder = 10)
       ax.add_patch(c0)
       ax.add_patch(c1)
       ax.add_patch(c2)
@@ -96,31 +98,31 @@ class double_pendulum:
                   lw = 2, alpha = alpha)
 
       # Centre the image on the fixed anchor point, and ensure the axes are equal
-      ax.set_xlim(-obj.L1 - obj.L2 - obj.r, obj.L1 + obj.L2 + obj.r)
-      ax.set_ylim(-obj.L1 - obj.L2 - obj.r, obj.L1 + obj.L2 + obj.r)
+      ax.set_xlim(-self.L1 - self.L2 - self.r, self.L1 + self.L2 + self.r)
+      ax.set_ylim(-self.L1 - self.L2 - self.r, self.L1 + self.L2 + self.r)
       ax.set_aspect('equal', adjustable = 'box')
       plt.axis('off')
       plt.savefig(savedir + '/_img{:04d}.png'.format(i//di), dpi = 72) # frames
       plt.cla()
-    print('images saved in ' + savedir)
+    print(f'images saved in {savedir}')
     plt.close(fig)
       
-  def run_pendulum(obj): #if __name__ == "__main__":
+  def run_pendulum(self): #if __name__ == "__main__":
 
     # Maximum time, time point spacings and the time grid (all in s).
     # tmax, dt = 30, 0.01
-    t = np.arange(0, obj.tmax + obj.dt, obj.dt)
+    t = np.arange(0, self.tmax + self.dt, self.dt)
     # Initial conditions: theta1, dtheta1/dt, theta2, dtheta2/dt.
     # y0 = np.array([3*np.pi/7, 0,  3*np.pi/4, 0])
 
     # Do the numerical integration of the equations of motion
-    y = odeint(double_pendulum.deriv, obj.y0, t, args = (obj, )) # args=(L1, L2, m1, m2))
+    y = odeint(double_pendulum.deriv, self.y0, t, args=(self, ))
     # Check that the calculation conserves total energy to within some tolerance.
     # EDRIFT = 0.05
     # Total energy from the initial conditions
-    E = obj.calc_E(obj.y0)
-    if np.max(np.sum(np.abs(obj.calc_E(y) - E))) > obj.EDRIFT:
-        sys.exit('Maximum energy drift of {} exceeded.'.format(obj.EDRIFT))
+    E = self.calc_E(self.y0)
+    if np.max(np.sum(np.abs(self.calc_E(y) - E))) > self.EDRIFT:
+      sys.exit(f'Maximum energy drift of {self.EDRIFT} exceeded.')
     else:
       print('energy is fine')
     return y 
@@ -144,16 +146,11 @@ class double_pendulum:
 
     return theta1dot, z1dot, theta2dot, z2dot
   
-  def gif(dirname):
-    images = []
-    dirfiles = sorted(os.listdir(dirname)) # 'frames/'
-    # dirfiles = [f for f in listdir(dirname) if isfile(join(dirname, f))]
-    for filename in dirfiles:
-      # print(filename)
-      images.append(imageio.imread(dirname + '/' + filename))
-    
+  def gif(self):
+    dirfiles = sorted(os.listdir(self))
+    images = [imageio.imread(f'{self}/{filename}') for filename in dirfiles]
     imageio.mimsave('_img_movie.gif', images)
-    print('_img_movie.gif is saved in ' + os.getcwd())
+    print(f'_img_movie.gif is saved in {os.getcwd()}')
 
 
 
