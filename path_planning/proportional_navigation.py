@@ -5,27 +5,26 @@ class proportional_navigation():
     flyby = False
     rr = False
          
-    def __init__(obj, N, ts):
-        obj.N = N
-        obj.ts = ts
+    def __init__(self, N, ts):
+        self.N = N
+        self.ts = ts
 
-    def PN(obj, v, lambda_dot):
-        return obj.N * v * lambda_dot
+    def PN(self, v, lambda_dot):
+        return self.N * v * lambda_dot
     
     def tgo():
         # TBD 
         pass 
     
-    def set_flyby(obj, rnew, r):
+    def set_flyby(self, rnew, r):
         
-        rdot = (np.abs(rnew) - np.abs(r)) / obj.ts
-        
-        if obj.rr == False:
+        rdot = (np.abs(rnew) - np.abs(r)) / self.ts
+
+        if self.rr == False:
             if rdot < 0:
-                obj.rr = True
-        else:
-            if rdot >= 0:
-                obj.flyby = True
+                self.rr = True
+        elif rdot >= 0:
+            self.flyby = True
                 
                 
                    

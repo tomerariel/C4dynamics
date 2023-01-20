@@ -37,65 +37,83 @@ class dzradar:
   noise = np.sqrt(500 * c4d.params.ft2m) # 1 sigma 
   # misalignment = 0.01 # deg
 
-  def __init__(obj, x0, filtype, ts):
-      '''
+  def __init__(self, x0, filtype, ts):
+    '''
        initial estimate: 
        100025 ft    25ft error
        6150 ft/s    150ft/s error
        800 lb/ft^2  300lb/ft^2 
       '''
-      obj.ts = ts
-      if filtype == c4d.filters.filtertype.ex_kalman:
-        obj.ifilter = c4d.filters.e_kalman(x0
-                                           , [obj.noise
-                                              , 141.42 * c4d.params.ft2m
-                                              , 300 * c4d.params.lbft2kgm]
-                                           , obj.ts)
-      elif filtype == c4d.filters.filtertype.luenberger:
-        # linear model
-        beta0 = x0[2]
-        A = np.array([[0, 1, 0], [0, -np.sqrt(2 * 0.0034 * c4d.params.g / beta0)
-                                  , -c4d.params.g / beta0], [0, 0, 0]])
-        b = np.array([[0], [0], [0]])
-        c = np.array([1, 0, 0])
-        obj.ifilter = c4d.filters.luenberger(A, b, c)
-      elif filtype == c4d.filters.filtertype.lowpass:
-        obj.ifilter = c4d.filters.lowpass(.2, obj.ts, x0)
-      else:
-        print('filter type error')
+    self.ts = ts
+    if filtype == c4d.filters.filtertype.ex_kalman:
+      self.ifilter = c4d.filters.e_kalman(
+          x0,
+          [self.noise, 141.42 * c4d.params.ft2m, 300 * c4d.params.lbft2kgm],
+          self.ts,
+      )
+    elif filtype == c4d.filters.filtertype.luenberger:
+      # linear model
+      beta0 = x0[2]
+      A = np.array([[0, 1, 0], [0, -np.sqrt(2 * 0.0034 * c4d.params.g / beta0)
+                                , -c4d.params.g / beta0], [0, 0, 0]])
+      b = np.array([[0], [0], [0]])
+      c = np.array([1, 0, 0])
+      self.ifilter = c4d.filters.luenberger(A, b, c)
+    elif filtype == c4d.filters.filtertype.lowpass:
+      self.ifilter = c4d.filters.lowpass(.2, self.ts, x0)
+    else:
+      print('filter type error')
+
+    self.data[0, :] = np.insert(x0, 0, 0)  
       
-      obj.data[0, :] =  np.insert(x0, 0, 0)  
       
-      
-  def measure(obj, x):
+  def measure(self, x):
     # 
     # apply errors
     ##
-    obj.r = x * obj.sf + obj.bias + obj.noise * np.random.randn(1) 
+    self.r = x * self.sf + self.bias + self.noise * np.random.randn(1) 
   
       
-  def filter(obj, t):
+  def filter(self, t):
     
     # check that t is at time of operation 
-    
-    
-    if (1000 * t) % (1000 * obj.ts) > 1e-6 or t <= 0:
+
+
+    if 1000 * t % (1000 * self.ts) > 1e-6 or t <= 0:
       return
-    
-    
+
+
     # print(t)
-    rho = .0034 * np.exp(-obj.ifilter.x[0, 0] / 22000 / c4d.params.ft2m)
-    f21 = -rho * c4d.params.g * obj.ifilter.x[1, 0]**2 / 44000 / obj.ifilter.x[2, 0] 
-    f22 =  rho * c4d.params.g * obj.ifilter.x[1, 0] / obj.ifilter.x[2, 0]
-    f23 = -rho * c4d.params.g * obj.ifilter.x[1, 0]**2 / 2 / obj.ifilter.x[2, 0]**2 
-    
-    Phi = np.array([[1, obj.ifilter.tau, 0], 
-                    [f21 * obj.ifilter.tau, 1 + f22 * obj.ifilter.tau, f23 * obj.ifilter.tau], 
-                    [0, 0, 1]])
-    
-    Q   = np.array([[0, 0, 0], 
-                    [0, obj.q33 * f23**2 * obj.ifilter.tau**3 / 3, obj.q33 * f23 * obj.ifilter.tau**2 / 2], 
-                    [0, obj.q33 * f23 * obj.ifilter.tau**2 / 2, obj.q33 * obj.ifilter.tau]])
+    rho = .0034 * np.exp(-self.ifilter.x[0, 0] / 22000 / c4d.params.ft2m)
+    f21 = (-rho * c4d.params.g * self.ifilter.x[1, 0]**2 / 44000 /
+           self.ifilter.x[2, 0])
+    f22 = rho * c4d.params.g * self.ifilter.x[1, 0] / self.ifilter.x[2, 0]
+    f23 = (-rho * c4d.params.g * self.ifilter.x[1, 0]**2 / 2 /
+           self.ifilter.x[2, 0]**2) 
+
+    Phi = np.array([
+        [1, self.ifilter.tau, 0],
+        [
+            f21 * self.ifilter.tau,
+            1 + f22 * self.ifilter.tau,
+            f23 * self.ifilter.tau,
+        ],
+        [0, 0, 1],
+    ])
+
+    Q = np.array([
+        [0, 0, 0],
+        [
+            0,
+            self.q33 * f23**2 * self.ifilter.tau**3 / 3,
+            self.q33 * f23 * self.ifilter.tau**2 / 2,
+        ],
+        [
+            0,
+            self.q33 * f23 * self.ifilter.tau**2 / 2,
+            self.q33 * self.ifilter.tau,
+        ],
+    ])
 
     f = lambda w: c4d.seekers.dzradar.system_model(w)
 
@@ -104,19 +122,19 @@ class dzradar:
     ##
 
     ''' predict '''
-    obj.ifilter.predict(f, Phi, Q)
-    ''' correct '''    
-    x = obj.ifilter.update(f, obj.r)  
- 
-    obj.r = x[0]
+    self.ifilter.predict(f, Phi, Q)
+    ''' correct '''
+    x = self.ifilter.update(f, self.r)  
+
+    self.r = x[0]
     #
     # store results 
     ##
- 
-    # obj.data = np.concatenate((obj.data, np.expand_dims(np.insert(x, 0, t), axis = 0)), axis = 0)  
-    obj.data = np.vstack((obj.data, np.insert(x, 0, t))).copy()
-    
-    return obj.r
+     
+    # obj.data = np.concatenate((obj.data, np.expand_dims(np.insert(x, 0, t), axis = 0)), axis = 0)
+    self.data = np.vstack((self.data, np.insert(x, 0, t))).copy()
+
+    return self.r
 
     
 
@@ -136,10 +154,10 @@ class radar:
   bias = 0
   sf = 1
   
-  def __init__(obj, **kwargs):
-    obj.__dict__.update(kwargs)
+  def __init__(self, **kwargs):
+    self.__dict__.update(kwargs)
   
-  def measure(obj, x):
-    return x * obj.sf + obj.bias + obj.noisestd * np.random.randn()
+  def measure(self, x):
+    return x * self.sf + self.bias + self.noisestd * np.random.randn()
   
   

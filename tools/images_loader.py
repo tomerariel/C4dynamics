@@ -19,9 +19,9 @@ def sngl3(file):
             err1 = True
     else:
         err1 = True
-        
+
     if err1:
-        print(file + ' is not an image file')
+        print(f'{file} is not an image file')
     else:
         return img
 
@@ -34,9 +34,9 @@ def snglv(file):
             err1 = True
     else:
         err1 = True
-        
+
     if err1:
-        print(file + ' is not an image file')
+        print(f'{file} is not an image file')
     else:
         img = np.reshape(img, (1, -1)) # the unspecified value is inferred as .. 
         return img
